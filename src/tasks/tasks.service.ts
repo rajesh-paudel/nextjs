@@ -22,12 +22,15 @@ export class TasksService {
       totalPages: number;
     };
   }> {
-    const { completed, search, page = 1, limit = 10 } = getTasksQueryDto;
+    const { status, priority, search, page = 1, limit = 10 } = getTasksQueryDto;
     const offset = (page - 1) * limit;
     //  dynamic conditions array
     const conditions = [eq(tasks.userId, userId)];
-    if (completed !== undefined) {
-      conditions.push(eq(tasks.completed, completed));
+    if (status) {
+      conditions.push(eq(tasks.status, status));
+    }
+    if (priority) {
+      conditions.push(eq(tasks.priority, priority));
     }
     if (search) {
       conditions.push(ilike(tasks.title, `%${search}%`));

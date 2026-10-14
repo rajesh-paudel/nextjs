@@ -1,15 +1,19 @@
-import { IsOptional, IsBoolean, IsString, IsInt, Min } from 'class-validator';
+import { IsOptional, IsString, IsInt, Min, IsEnum } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { TaskPriority, TaskStatus } from './create-task.dto.js';
 
 export class GetTaskQueryDto {
   @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
-  @IsBoolean()
-  completed?: boolean;
-
-  @IsOptional()
   @IsString()
   search?: string;
+
+  @IsOptional()
+  @IsEnum(TaskStatus)
+  status?: TaskStatus;
+
+  @IsOptional()
+  @IsEnum(TaskPriority)
+  priority?: TaskPriority;
 
   @IsOptional()
   @Transform(({ value }) => (value ? Number(value) : 1))

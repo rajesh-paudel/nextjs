@@ -18,7 +18,10 @@ export const users = pgTable('users', {
 export const tasks = pgTable('tasks', {
   id: serial('id').primaryKey(),
   title: text('title').notNull(),
-  completed: boolean('completed').default(false).notNull(),
+  description: text('description'),
+  status: text('status').default('todo').notNull(),
+  priority: text('priority').default('medium').notNull(), //low,medium,high,urgent
+  dueDate: timestamp('due_date'),
   userId: integer('user_id')
     .references(() => users.id, { onDelete: 'cascade' })
     .notNull(),
