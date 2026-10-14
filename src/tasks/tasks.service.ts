@@ -101,4 +101,8 @@ export class TasksService {
       throw new NotFoundException(`Task with ID ${id} not found`);
     return deletedTask;
   }
+
+  async findAllSystemTasks(): Promise<Task[]> {
+    return await this.dbService.db.select().from(tasks);
+  }
 }

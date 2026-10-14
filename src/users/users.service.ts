@@ -8,7 +8,7 @@ import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UsersService {
   constructor(private dbService: DatabaseService) {}
-  
+
   async create(createUserDto: CreateUserDto) {
     const [existingUser] = await this.dbService.db
       .select()
@@ -23,6 +23,7 @@ export class UsersService {
       .values({
         email: createUserDto.email,
         password: hashedPassword,
+        role: createUserDto.role,
       } as NewUser)
       .returning();
 
@@ -31,10 +32,10 @@ export class UsersService {
   }
 
   async findByEmail(email: string) {
-  const [user] = await this.dbService.db
-    .select()
-    .from(users)
-    .where(eq(users.email, email));
-  return user;
-}
+    const [user] = await this.dbService.db
+      .select()
+      .from(users)
+      .where(eq(users.email, email));
+    return user;
+  }
 }
