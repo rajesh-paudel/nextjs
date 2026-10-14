@@ -1,7 +1,6 @@
-import { IsOptional, IsString, IsInt, Min, IsEnum } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { IsOptional, IsString, IsInt, Min, IsEnum, IsDateString } from 'class-validator';
 import { TaskPriority, TaskStatus } from './create-task.dto.js';
-
+import { Type } from 'class-transformer';
 export class GetTaskQueryDto {
   @IsOptional()
   @IsString()
@@ -16,14 +15,40 @@ export class GetTaskQueryDto {
   priority?: TaskPriority;
 
   @IsOptional()
-  @Transform(({ value }) => (value ? Number(value) : 1))
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   page?: number = 1;
 
   @IsOptional()
-  @Transform(({ value }) => (value ? Number(value) : 10))
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   limit?: number = 10;
+
+  // Date Range Filters
+  @IsOptional()
+  @IsDateString()
+  dueDateFrom?: string;
+
+  @IsOptional()
+  @IsDateString()
+  dueDateTo?: string;
+
+  @IsOptional()
+  @IsDateString()
+  createdFrom?: string;
+
+  @IsOptional()
+  @IsDateString()
+  createdTo?: string;
+
+  //  Sorting 
+  @IsOptional()
+  @IsEnum(['createdAt', 'dueDate', 'priority', 'title'])
+  sortBy?: 'createdAt' | 'dueDate' | 'priority' | 'title' = 'createdAt';
+
+  @IsOptional()
+  @IsEnum(['asc', 'desc'])
+  sortOrder?: 'asc' | 'desc' = 'desc';
 }

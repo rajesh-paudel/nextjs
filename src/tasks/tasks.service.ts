@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service.js';
 import { tasks, Task, NewTask } from '../database/schema.js';
-import { eq, and, ilike, count } from 'drizzle-orm';
+import { eq, and, ilike, count, lte, gte, desc, asc } from 'drizzle-orm';
 import { CreateTaskDto } from './dto/create-task.dto.js';
 import { UpdateTaskDto } from './dto/update-task.dto.js';
 import { GetTaskQueryDto } from './dto/get-tasks-query.dto.js';
@@ -22,7 +22,19 @@ export class TasksService {
       totalPages: number;
     };
   }> {
-    const { status, priority, search, page = 1, limit = 10 } = getTasksQueryDto;
+    const {
+      status,
+      priority,
+      search,
+      page = 1,
+      limit = 10,
+      dueDateFrom,
+      dueDateTo,
+      createdFrom,
+      createdTo,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = getTasksQueryDto;
     const offset = (page - 1) * limit;
     //  dynamic conditions array
     const conditions = [eq(tasks.userId, userId)];
@@ -35,11 +47,39 @@ export class TasksService {
     if (search) {
       conditions.push(ilike(tasks.title, `%${search}%`));
     }
+    if (dueDateFrom) {
+      conditions.push(gte(tasks.dueDate, new Date(dueDateFrom)));
+    }
+
+    if (dueDateTo) {
+      conditions.push(lte(tasks.dueDate, new Date(dueDateTo)));
+    }
+
+    if (createdFrom) {
+      conditions.push(gte(tasks.createdAt, new Date(createdFrom)));
+    }
+
+    if (createdTo) {
+      conditions.push(lte(tasks.createdAt, new Date(createdTo)));
+    }
     const whereClause = and(...conditions);
+
+    const sortColumnMap = {
+      title: tasks.title,
+      priority: tasks.priority,
+      dueDate: tasks.dueDate,
+      createdAt: tasks.createdAt,
+    };
+
+    const selectedColumn = sortColumnMap[sortBy] || tasks.createdAt;
+    const orderByClause =
+      sortOrder === 'asc' ? asc(selectedColumn) : desc(selectedColumn);
+
     const data = await this.dbService.db
       .select()
       .from(tasks)
       .where(whereClause)
+      .orderBy(orderByClause)
       .limit(limit)
       .offset(offset);
 
