@@ -20,7 +20,6 @@ export class DatabaseService implements OnModuleInit, OnApplicationShutdown {
   }
 
   async onModuleInit() {
-    // Verified connection on startup
     console.log('Database connection initialized successfully.');
   }
 
