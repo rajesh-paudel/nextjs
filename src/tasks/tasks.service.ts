@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service.js';
 import { tasks, Task, NewTask } from '../database/schema.js';
-import { eq, and, ilike, count, lte, gte, desc, asc } from 'drizzle-orm';
+import { eq, and, ilike, count, lte, gte, desc, asc, sql } from 'drizzle-orm';
 import { CreateTaskDto } from './dto/create-task.dto.js';
 import { UpdateTaskDto } from './dto/update-task.dto.js';
 import { GetTaskQueryDto } from './dto/get-tasks-query.dto.js';
@@ -147,5 +147,54 @@ export class TasksService {
 
   async findAllSystemTasks(): Promise<Task[]> {
     return await this.dbService.db.select().from(tasks);
+  }
+
+  async getTaskStats(userId: number) {
+    const now = new Date();
+
+    const [stats] = await this.dbService.db
+      .select({
+        total: count(),
+        completed: count(
+          sql`CASE WHEN ${tasks.status} = 'completed' THEN 1 END`,
+        ),
+        todo: count(sql`CASE WHEN ${tasks.status} = 'todo' THEN 1 END`),
+        inProgress: count(
+          sql`CASE WHEN ${tasks.status} = 'in_progress' THEN 1 END`,
+        ),
+        overdue: count(
+          sql`CASE WHEN ${tasks.status} != 'COMPLETED' AND ${tasks.dueDate} < ${now} THEN 1 END`,
+        ),
+        highPriority: count(
+          sql`CASE WHEN ${tasks.priority} = 'high' THEN 1 END`,
+        ),
+        mediumPriority: count(
+          sql`CASE WHEN ${tasks.priority} = 'medium' THEN 1 END`,
+        ),
+        lowPriority: count(sql`CASE WHEN ${tasks.priority} = 'low' THEN 1 END`),
+      })
+      .from(tasks)
+      .where(eq(tasks.userId, userId));
+
+    const total = Number(stats.total);
+    const completed = Number(stats.completed);
+    const completionRate =
+      total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    return {
+      total,
+      completionRate: `${completionRate}%`,
+      statuses: {
+        completed: Number(stats.completed),
+        pending: Number(stats.todo),
+        inProgress: Number(stats.inProgress),
+        overdue: Number(stats.overdue),
+      },
+      priorities: {
+        high: Number(stats.highPriority),
+        medium: Number(stats.mediumPriority),
+        low: Number(stats.lowPriority),
+      },
+    };
   }
 }

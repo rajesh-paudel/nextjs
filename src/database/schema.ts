@@ -19,7 +19,7 @@ export const tasks = pgTable('tasks', {
   id: serial('id').primaryKey(),
   title: text('title').notNull(),
   description: text('description'),
-  status: text('status').default('todo').notNull(),
+  status: text('status').default('todo').notNull(), //todo,in_progress,completed
   priority: text('priority').default('medium').notNull(), //low,medium,high,urgent
   dueDate: timestamp('due_date'),
   userId: integer('user_id')

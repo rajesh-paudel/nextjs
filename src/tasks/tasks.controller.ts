@@ -31,6 +31,11 @@ export class TasksController {
     return this.tasksService.findAllSystemTasks();
   }
 
+  @Get('stats')
+  getStats(@GetUser('userId') userId: number) {
+    return this.tasksService.getTaskStats(userId);
+  }
+
   @Get()
   findAll(
     @GetUser('userId') userId: number,
